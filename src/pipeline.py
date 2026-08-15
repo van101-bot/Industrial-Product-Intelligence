@@ -1,45 +1,81 @@
 from .cleaner import clean_product_row
 from .identity import build_identity
 from .brand_resolver import resolve_brand
-from .entity_resolver import (
-    resolve_manufacturer,
-    resolve_brand_for_manufacturer,
-)
+from .entity_resolver import resolve_manufacturer
 from .attributes import AttributeEnricher
 
-def enrich_product(row) -> dict:
+
+def enrich_product(row, attribute_enricher=None):
+    """
+    Run the complete product enrichment pipeline.
+
+    Flow:
+        raw row
+            ↓
+        cleaning
+            ↓
+        identity extraction
+            ↓
+        brand resolution
+            ↓
+        manufacturer resolution
+            ↓
+        attribute extraction
+            ↓
+        normalized attributes
+    """
+
+    # ---------------------------------------------------------
+    # 1. CLEAN
+    # ---------------------------------------------------------
 
     cleaned = clean_product_row(row)
 
+    # ---------------------------------------------------------
+    # 2. IDENTITY
+    # ---------------------------------------------------------
+
     identity = build_identity(cleaned)
+
+    # ---------------------------------------------------------
+    # 3. BRAND
+    # ---------------------------------------------------------
 
     brand_result = resolve_brand(cleaned)
 
+    # ---------------------------------------------------------
+    # 4. MANUFACTURER
+    # ---------------------------------------------------------
+
     manufacturer_result = resolve_manufacturer(
-        identity.get("manufacturer_candidate")
+        cleaned.get("manufacturer")
     )
 
-    resolved_identity = resolve_brand_for_manufacturer(
-        brand_result.get("brand"),
-        identity.get("manufacturer_candidate"),
-    )
+    # ---------------------------------------------------------
+    # 5. ATTRIBUTE ENRICHMENT
+    # ---------------------------------------------------------
 
-    attribute_enricher = AttributeEnricher()
+    if attribute_enricher is None:
+        attribute_enricher = AttributeEnricher()
+
+    attribute_text = " ".join(
+        [
+            str(cleaned.get("mpn") or ""),
+            str(cleaned.get("part_description") or ""),
+        ]
+    ).strip()
 
     attribute_result = attribute_enricher.enrich(
-        cleaned["part_description"]
+        attribute_text
     )
+
+    # ---------------------------------------------------------
+    # 6. FINAL RESULT
+    # ---------------------------------------------------------
 
     return {
         "identity": identity,
-
-        "brand_detection": brand_result,
-
-        "manufacturer_resolution": manufacturer_result,
-
-        "canonical_identity": resolved_identity,
-
+        "brand": brand_result,
+        "manufacturer": manufacturer_result,
         "attributes": attribute_result,
-
-        "input": cleaned,
     }

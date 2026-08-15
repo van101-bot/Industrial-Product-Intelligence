@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.pipeline import enrich_product
+from .pipeline import enrich_product
 
 
 INPUT = (
@@ -9,11 +9,10 @@ INPUT = (
 )
 
 
-class FakeExtractor:
+class DemoExtractor:
 
     def extract_product_attributes(self, text):
 
-        # Deterministic attributes for pipeline testing.
         return {
             "diameter": "4-1/2",
             "thickness": ".045",
@@ -22,15 +21,15 @@ class FakeExtractor:
         }
 
 
-class FakeAttributeEnricher:
+class DemoAttributeEnricher:
 
     def __init__(self):
-        self.extractor = FakeExtractor()
+        self.extractor = DemoExtractor()
 
     def enrich(self, text):
 
-        from src.normalizer import normalize_attribute_record
-        from src.attribute_evidence import (
+        from .normalizer import normalize_attribute_record
+        from .attribute_evidence import (
             build_attribute_evidence
         )
 
@@ -58,7 +57,7 @@ class FakeAttributeEnricher:
         }
 
 
-def test_real_catalogue_pipeline():
+def main():
 
     df = pd.read_csv(INPUT)
 
@@ -66,14 +65,43 @@ def test_real_catalogue_pipeline():
 
     result = enrich_product(
         row,
-        attribute_enricher=FakeAttributeEnricher(),
+        attribute_enricher=DemoAttributeEnricher(),
     )
 
-    assert "identity" in result
-    assert "brand" in result
-    assert "manufacturer" in result
-    assert "attributes" in result
+    print("=" * 70)
+    print("BATCH 3 ATTRIBUTE ENRICHMENT DEMO")
+    print("=" * 70)
 
-    assert "normalized" in result["attributes"]
+    print("\nIDENTITY")
+    print("-" * 70)
+    print(result["identity"])
 
-    assert result["attributes"]["status"] == "accepted"
+    print("\nBRAND")
+    print("-" * 70)
+    print(result["brand"])
+
+    print("\nMANUFACTURER")
+    print("-" * 70)
+    print(result["manufacturer"])
+
+    print("\nATTRIBUTES")
+    print("-" * 70)
+    print(result["attributes"])
+
+    print("\nNORMALIZED ATTRIBUTES")
+    print("-" * 70)
+    print(result["attributes"]["normalized"])
+
+    print("\nEVIDENCE")
+    print("-" * 70)
+
+    for item in result["attributes"]["evidence"]:
+        print(item)
+
+    print("\nSTATUS")
+    print("-" * 70)
+    print(result["attributes"]["status"])
+
+
+if __name__ == "__main__":
+    main()
