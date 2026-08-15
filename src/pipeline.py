@@ -5,7 +5,7 @@ from .entity_resolver import (
     resolve_manufacturer,
     resolve_brand_for_manufacturer,
 )
-
+from .attributes import AttributeEnricher
 
 def enrich_product(row) -> dict:
 
@@ -24,6 +24,12 @@ def enrich_product(row) -> dict:
         identity.get("manufacturer_candidate"),
     )
 
+    attribute_enricher = AttributeEnricher()
+
+    attribute_result = attribute_enricher.enrich(
+        cleaned["part_description"]
+    )
+
     return {
         "identity": identity,
 
@@ -32,6 +38,8 @@ def enrich_product(row) -> dict:
         "manufacturer_resolution": manufacturer_result,
 
         "canonical_identity": resolved_identity,
+
+        "attributes": attribute_result,
 
         "input": cleaned,
     }

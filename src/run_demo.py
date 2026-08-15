@@ -1,3 +1,5 @@
+from unittest import result
+
 import pandas as pd
 
 from .pipeline import enrich_product
@@ -47,8 +49,9 @@ def main():
 
         print("\nCANONICAL IDENTITY")
         print("-" * 80)
-        print(result["canonical_identity"])
+        print(result["canonical_identity"])  
 
+        print("\nATTRIBUTES")
+        print("-" * 80)
 
-if __name__ == "__main__":
-    main()
+        print(result["attributes"]["normalized"])
