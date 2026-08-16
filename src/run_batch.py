@@ -32,7 +32,7 @@ def main():
         exist_ok=True,
     )
 
-    df = pd.read_csv(INPUT)
+    df = pd.read_csv(INPUT).head(100)
 
     print(f"Rows loaded: {len(df)}")
 
