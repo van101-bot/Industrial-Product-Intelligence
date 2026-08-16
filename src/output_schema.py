@@ -1,0 +1,18 @@
+OUTPUT_COLUMNS = [
+    "Mfg_Part_Num",
+    "Part_Desc",
+    "Brand",
+    "Manufacturer",
+    "Product_Type",
+    "Diameter",
+    "Thickness",
+    "Arbor",
+    "Length",
+    "Width",
+    "Height",
+    "Pack_Quantity",
+    "Identity_Confidence",
+    "Attribute_Confidence",
+    "Status",
+    "Evidence_Count",
+]
