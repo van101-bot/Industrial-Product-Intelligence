@@ -3,13 +3,8 @@ import pandas as pd
 
 from .catalogue import enrich_catalogue 
 
-test_input = "data/output/batch4_test_10.csv"
 INPUT = "data/raw/Unihack_ Sample Dataset - Input.csv"
 OUTPUT = "data/output/enriched_products.csv"
-
-df = pd.read_csv(INPUT).head(10)
-df.to_csv(test_input, index=False)
-
 
 
 def main():
@@ -20,11 +15,11 @@ def main():
     print("BATCH 4 — REAL CATALOGUE ENRICHMENT")
     print("=" * 80)
 
-    print(f"Input : {test_input}")
+    print(f"Input : {INPUT}")
     print(f"Output: {OUTPUT}")
     print()
 
-    result = enrich_catalogue(test_input)
+    result = enrich_catalogue(INPUT)
 
     result.to_csv(OUTPUT, index=False)
 
