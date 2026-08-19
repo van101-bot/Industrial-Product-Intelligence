@@ -2,6 +2,9 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 
+MASTER_DATA_SOURCE = "competition_input_dataset"
+MASTER_DATA_TYPE = "derived_reference"
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -180,3 +183,45 @@ def brand_names() -> list[str]:
         for value in df["BRAND_NAME"].dropna().unique()
         if str(value).strip()
     ]
+
+def manufacturer_brand_pairs() -> list[dict]:
+    df = load_manufacturer_brand_master()
+
+    pairs = []
+
+    for _, row in df.iterrows():
+        manufacturer = str(
+            row.get("MANUFACTURER_NAME", "")
+        ).strip()
+
+        brand = str(
+            row.get("BRAND_NAME", "")
+        ).strip()
+
+        if not manufacturer or not brand:
+            continue
+
+        pairs.append({
+            "manufacturer": manufacturer,
+            "brand": brand,
+        })
+
+    return pairs
+
+def is_placeholder(value):
+    if value is None:
+        return True
+
+    value = str(value).strip().lower()
+
+    placeholders = {
+        "",
+        "-",
+        "--",
+        "-- unbranded --",
+        "-- no unilog brand --",
+        "-- no dib brand --",
+        "commodity - unbranded",
+    }
+
+    return value in placeholders

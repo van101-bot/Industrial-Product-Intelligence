@@ -33,3 +33,9 @@ def test_master_has_brands():
     names = brand_names()
 
     assert len(names) >= 20
+
+def test_placeholder_brand_is_not_real_brand():
+    from src.master_data import is_placeholder
+
+    assert is_placeholder("-- Unbranded --")
+    assert is_placeholder("-- No DIB Brand --")

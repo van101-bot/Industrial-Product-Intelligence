@@ -1,0 +1,8 @@
+{
+    "name": "Company Demo",
+    "taxonomy_lov": "data/demo/company_taxonomy.csv",
+    "attribute_lov": "data/demo/company_lov_v2.csv",
+    "strict_mode": true,
+    "allow_fuzzy_matching": false,
+    "minimum_confidence": 0.90
+}

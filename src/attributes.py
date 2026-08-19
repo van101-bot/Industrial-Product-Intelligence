@@ -1,3 +1,5 @@
+import re
+
 from .ai_extractor import GeminiAIExtractor
 from .normalizer import normalize_attribute_record
 from .attribute_evidence import build_attribute_evidence
@@ -62,3 +64,41 @@ class AttributeEnricher:
             "evidence": evidence,
             "status": "accepted",
         }
+
+def extract_pack_quantity(text: str):
+
+    match = re.search(
+        r"\b(\d+)\s*(?:pc|pcs|piece|pieces|pack|pk|/box)\b",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        return int(match.group(1))
+
+    return None
+
+
+def extract_dimensions(text: str):
+
+    normalized = text.replace("×", "x")
+
+    pattern = (
+        r'(\d+(?:\.\d+)?(?:/\d+)?)\s*"'
+        r'\s*x\s*'
+        r'(\d+(?:\.\d+)?(?:/\d+)?)\s*"'
+    )
+
+    match = re.search(
+        pattern,
+        normalized,
+        re.IGNORECASE,
+    )
+
+    if not match:
+        return {}
+
+    return {
+        "dimension_1": match.group(1),
+        "dimension_2": match.group(2),
+    }

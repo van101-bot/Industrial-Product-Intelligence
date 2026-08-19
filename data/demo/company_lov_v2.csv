@@ -1,0 +1,8 @@
+attribute,controlled_value,aliases
+Material,Steel,steel;stl
+Material,Stainless Steel,stainless;stainless steel;ss
+Material,Aluminum,aluminum;aluminium;alu
+Material,Titanium,titanium;ti
+Finish,Black,black;blk
+Finish,White,white;wh
+Finish,Silver,silver;sil
