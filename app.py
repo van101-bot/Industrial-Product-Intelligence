@@ -2191,13 +2191,26 @@ with tab_lov:
 # ============================================================
 
 with tab_test:
+
     st.markdown(
         """
         <style>
         .section { margin-bottom: 20px; }
-        .section-kicker { font-size: 14px; color: #888; text-transform: uppercase; }
-        .section-title { font-size: 22px; font-weight: bold; margin-top: 5px; }
-        .section-copy { font-size: 16px; color: #555; margin-top: 10px; }
+        .section-kicker {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .section-copy {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -2205,18 +2218,21 @@ with tab_test:
 
     st.markdown(
         """
-<div class="section">
-    <div class="section-kicker">05 / Evaluation</div>
-    <div class="section-title">Test the enrichment engine on new data</div>
-    <div class="section-copy">
-        Upload a previously unseen catalogue CSV to verify that
-        the enrichment workflow operates dynamically from input
-        through structured output.
-    </div>
-</div>
+        <div class="section">
+            <div class="section-kicker">05 / Evaluation</div>
+            <div class="section-title">
+                Test the enrichment engine on new data
+            </div>
+            <div class="section-copy">
+                Upload a previously unseen catalogue CSV to verify that
+                the enrichment workflow operates dynamically from input
+                through structured output.
+            </div>
+        </div>
         """,
         unsafe_allow_html=True,
     )
+
     uploaded_file = st.file_uploader(
         "Upload evaluator CSV",
         type=["csv"],
@@ -2224,6 +2240,7 @@ with tab_test:
             "Upload a catalogue with product descriptions, manufacturer "
             "part numbers or related product information."
         ),
+        key="evaluator_upload",
     )
 
     if uploaded_file is None:
@@ -2251,9 +2268,7 @@ with tab_test:
                 f"{len(evaluator_df.columns):,} columns."
             )
 
-            st.markdown(
-                "### Input preview"
-            )
+            st.markdown("### Input preview")
 
             st.dataframe(
                 evaluator_df.head(10),
@@ -2261,18 +2276,18 @@ with tab_test:
                 hide_index=True,
             )
 
-            st.markdown(
-                "### Run dynamic enrichment"
-            )
+            st.markdown("### Run dynamic enrichment")
 
             run_evaluator = st.button(
                 "Run enrichment pipeline",
                 use_container_width=True,
+                key="run_evaluator",
             )
 
             if run_evaluator:
 
                 import tempfile
+                import os
 
                 from src.catalogue import enrich_catalogue
                 from src.final_output import (
@@ -2283,23 +2298,41 @@ with tab_test:
                     "Running enrichment pipeline..."
                 ):
 
-                    with tempfile.NamedTemporaryFile(
-                        suffix=".csv",
-                        delete=False,
-                    ) as temp_file:
-
-                        temp_path = temp_file.name
-
-                    evaluator_df.to_csv(
-                        temp_path,
-                        index=False,
-                    )
+                    temp_path = None
 
                     try:
 
+                        with tempfile.NamedTemporaryFile(
+                            suffix=".csv",
+                            delete=False,
+                            mode="w",
+                            encoding="utf-8",
+                            newline="",
+                        ) as temp_file:
+
+                            temp_path = temp_file.name
+
+                            evaluator_df.to_csv(
+                                temp_file,
+                                index=False,
+                            )
+
+                        # ------------------------------------------------
+                        # COMPANY LOV
+                        # ------------------------------------------------
+
+                        try:
+                            lov_for_evaluator = active_lov_sheets
+                        except NameError:
+                            lov_for_evaluator = None
+
+                        # ------------------------------------------------
+                        # RUN REAL PIPELINE
+                        # ------------------------------------------------
+
                         enriched_result = enrich_catalogue(
                             temp_path,
-                            company_lov=active_lov_sheets,
+                            company_lov=lov_for_evaluator,
                         )
 
                         final_result = (
@@ -2308,15 +2341,107 @@ with tab_test:
                             )
                         )
 
+                    except Exception as e:
+
+                        st.error(
+                            "Evaluator pipeline failed."
+                        )
+
+                        st.exception(e)
+
+                        st.stop()
+
                     finally:
 
-                        if os.path.exists(temp_path):
+                        if (
+                            temp_path is not None
+                            and os.path.exists(temp_path)
+                        ):
                             os.remove(temp_path)
+
+                # ========================================================
+                # RESULT SUMMARY
+                # ========================================================
 
                 st.success(
                     f"Pipeline completed — "
-                    f"{len(final_result):,} records enriched."
+                    f"{len(final_result):,} records processed."
                 )
+
+                st.markdown("### Evaluation summary")
+
+                total_rows = len(final_result)
+
+                if "status" in final_result.columns:
+
+                    status_counts = (
+                        final_result["status"]
+                        .fillna("UNKNOWN")
+                        .astype(str)
+                        .value_counts()
+                    )
+
+                    error_rows = int(
+                        status_counts.get("error", 0)
+                        + status_counts.get("ERROR", 0)
+                    )
+
+                    success_rows = total_rows - error_rows
+
+                else:
+
+                    status_counts = pd.Series(
+                        dtype="int64"
+                    )
+
+                    error_rows = 0
+                    success_rows = total_rows
+
+                c1, c2, c3 = st.columns(3)
+
+                with c1:
+                    st.metric(
+                        "Rows processed",
+                        f"{total_rows:,}",
+                    )
+
+                with c2:
+                    st.metric(
+                        "Successful rows",
+                        f"{success_rows:,}",
+                    )
+
+                with c3:
+                    st.metric(
+                        "Error rows",
+                        f"{error_rows:,}",
+                    )
+
+                # ========================================================
+                # STATUS DISTRIBUTION
+                # ========================================================
+
+                if not status_counts.empty:
+
+                    st.markdown(
+                        "### Status distribution"
+                    )
+
+                    status_view = (
+                        status_counts
+                        .rename_axis("Status")
+                        .reset_index(name="Rows")
+                    )
+
+                    st.dataframe(
+                        status_view,
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                # ========================================================
+                # ENRICHED OUTPUT
+                # ========================================================
 
                 st.markdown(
                     "### Enriched output"
@@ -2333,6 +2458,7 @@ with tab_test:
                         "product_type",
                         "taxonomy",
                         "confidence",
+                        "error",
                     ]
                     if column in final_result.columns
                 ]
@@ -2355,6 +2481,59 @@ with tab_test:
                         hide_index=True,
                     )
 
+                # ========================================================
+                # ERROR DIAGNOSTICS
+                # ========================================================
+
+                if "error" in final_result.columns:
+
+                    error_mask = (
+                        final_result["error"]
+                        .fillna("")
+                        .astype(str)
+                        .str.strip()
+                        != ""
+                    )
+
+                    error_df = final_result[
+                        error_mask
+                    ].copy()
+
+                    if not error_df.empty:
+
+                        st.markdown(
+                            "### Error diagnostics"
+                        )
+
+                        st.warning(
+                            f"{len(error_df):,} row(s) contain "
+                            "pipeline errors."
+                        )
+
+                        error_columns = [
+                            column
+                            for column in [
+                                "Mfg_Part_Num",
+                                "Part_Desc",
+                                "Part_Manuf",
+                                "status",
+                                "error",
+                            ]
+                            if column in error_df.columns
+                        ]
+
+                        st.dataframe(
+                            error_df[
+                                error_columns
+                            ].head(25),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                # ========================================================
+                # EXPORT
+                # ========================================================
+
                 st.markdown(
                     "### Export evaluator result"
                 )
@@ -2368,16 +2547,21 @@ with tab_test:
                 st.download_button(
                     label="Download enriched evaluator output",
                     data=evaluator_csv,
-                    file_name="evaluator_enriched_output.csv",
+                    file_name=(
+                        "evaluator_enriched_output.csv"
+                    ),
                     mime="text/csv",
                     use_container_width=True,
+                    key="download_evaluator_result",
                 )
 
         except Exception as e:
 
             st.error(
-                f"Evaluator pipeline failed: {e}"
+                "Evaluator interface failed."
             )
+
+            st.exception(e)
 # ============================================================
 # EVALUATOR VALIDATION DATA
 # ============================================================
