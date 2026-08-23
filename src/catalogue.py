@@ -55,20 +55,22 @@ def enrich_catalogue(input_path: str, company_lov=None) -> pd.DataFrame:
                 "evidence_count": len(evidence),
             })
 
-        except Exception as exc:
+        
+except Exception as exc:
 
-            results.append({
-                "Mfg_Part_Num": row.get("Mfg_Part_Num"),
-                "Part_Desc": row.get("Part_Desc"),
-                "status": "error",
-                "identity": None,
-                "brand": None,
-                "manufacturer": None,
-                "attributes": None,
-                "evidence_count": 0,
-                "error": str(exc),
-            })
+    print(
+        f"\nERROR at row {index}: "
+        f"{type(exc).__name__}: {exc}"
+    )
 
-    print()
-
-    return pd.DataFrame(results)
+    results.append({
+        "Mfg_Part_Num": row.get("Mfg_Part_Num"),
+        "Part_Desc": row.get("Part_Desc"),
+        "status": "error",
+        "identity": None,
+        "brand": None,
+        "manufacturer": None,
+        "attributes": None,
+        "evidence_count": 0,
+        "error": f"{type(exc).__name__}: {exc}",
+    })
