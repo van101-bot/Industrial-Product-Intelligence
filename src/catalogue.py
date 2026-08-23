@@ -3,7 +3,7 @@ import pandas as pd
 from .pipeline import enrich_product
 
 
-def enrich_catalogue(input_path: str) -> pd.DataFrame:
+def enrich_catalogue(input_path: str, company_lov=None) -> pd.DataFrame:
     """
     Enrich a catalogue row-by-row.
 

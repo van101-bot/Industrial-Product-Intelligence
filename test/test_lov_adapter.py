@@ -59,3 +59,4 @@ def test_lov_adapter_summary(tmp_path):
 
     assert summary["taxonomy_values"] == 1
     assert summary["attribute_values"] == 1
+

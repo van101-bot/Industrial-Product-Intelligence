@@ -89,3 +89,4 @@ def test_invalid_value():
     )
 
     assert result["valid"] is False
+

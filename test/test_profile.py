@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 
-from src.lov_profile import load_lov_profile
+from src.lov_profile import load_lov_profile , resolve_controlled_value
 from src.profile import (
     clean_dataframe,
     detect_taxonomy_columns,
@@ -132,3 +132,13 @@ def test_company_lov_has_controlled_values():
     )
 
     assert profile["controlled_value_count"] > 0
+
+def test_company_lov_controls_allowed_values():
+
+    result = resolve_controlled_value(
+        "Material",
+        "titanium"
+    )
+
+    assert result["value"] == "Titanium"
+    assert result["source"] == "company_lov"

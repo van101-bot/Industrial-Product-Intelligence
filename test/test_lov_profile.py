@@ -61,3 +61,4 @@ def test_profile_summary():
 
     assert summary["attribute_count"] == 2
     assert summary["controlled_value_count"] == 4
+

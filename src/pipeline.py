@@ -3,9 +3,15 @@ from .identity import build_identity
 from .brand_resolver import resolve_brand
 from .entity_resolver import resolve_manufacturer
 from .attributes import AttributeEnricher
+import pandas as pd
 
+def run_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+    # Example enrichment logic
+    df["row_count"] = range(1, len(df) + 1)
+    # Add your actual transformation steps here
+    return df
 
-def enrich_product(row, attribute_enricher=None):
+def enrich_product(row, attribute_enricher=None, comapny_lov=None):
     """
     Run the complete product enrichment pipeline.
 

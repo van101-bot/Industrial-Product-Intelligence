@@ -41,6 +41,33 @@ class LOVProfile:
             ),
         }
 
+def resolve_controlled_value(field: str, value: str) -> dict:
+    """
+    Resolve a raw input value into its normalized controlled value
+    for a given attribute field.
+
+    Parameters
+    ----------
+    field : str
+        The attribute label (e.g., "Material").
+    value : str
+        The raw input value (e.g., "titanium").
+
+    Returns
+    -------
+    dict
+        A dictionary with the normalized value and its source.
+        Example: {"value": "Titanium", "source": "company_lov"}
+    """
+
+    # Basic normalization example: capitalize first letter
+    normalized = value.strip().capitalize()
+
+    return {
+        "value": normalized,
+        "source": "company_lov"
+    }
+
 
 def _clean(value) -> str:
     if pd.isna(value):

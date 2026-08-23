@@ -87,3 +87,12 @@ def test_unknown_taxonomy_is_not_invented():
     )
 
     assert result["category"] is None
+
+def test_unknown_value_is_rejected():
+
+    result = classify_product(
+        "Industrial Component UnknownXYZ"
+    )
+
+    assert result["category"] is None
+
