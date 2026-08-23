@@ -26,6 +26,11 @@ def enrich_catalogue(input_path: str, company_lov=None) -> pd.DataFrame:
         )
 
         try:
+
+            # IMPORTANT:
+            # Keep the current working pipeline call for now.
+            # We will connect company_lov after checking
+            # the enrich_product() signature.
             result = enrich_product(row)
 
             attributes = result.get("attributes") or {}
@@ -53,22 +58,36 @@ def enrich_catalogue(input_path: str, company_lov=None) -> pd.DataFrame:
                 "attributes": attributes,
 
                 "evidence_count": len(evidence),
+
+                "error": None,
             })
-          except Exception as exc:
+
+        except Exception as exc:
+
+            print(
+                f"\nERROR at row {index}: "
+                f"{type(exc).__name__}: {exc}"
+            )
 
             results.append({
                 "Mfg_Part_Num": row.get("Mfg_Part_Num"),
                 "Part_Desc": row.get("Part_Desc"),
+
                 "status": "error",
+
                 "identity": None,
                 "brand": None,
                 "manufacturer": None,
+
                 "attributes": None,
+
                 "evidence_count": 0,
-                "error": str(exc),
+
+                "error": (
+                    f"{type(exc).__name__}: {exc}"
+                ),
             })
 
     print()
 
     return pd.DataFrame(results)
-
