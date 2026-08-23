@@ -65,12 +65,22 @@ except Exception as exc:
 
     results.append({
         "Mfg_Part_Num": row.get("Mfg_Part_Num"),
-        "Part_Desc": row.get("Part_Desc"),
-        "status": "error",
-        "identity": None,
-        "brand": None,
-        "manufacturer": None,
-        "attributes": None,
-        "evidence_count": 0,
-        "error": f"{type(exc).__name__}: {exc}",
+    "Part_Desc": row.get("Part_Desc"),
+
+    "status": (
+        attributes.get("status", "unknown")
+        if isinstance(attributes, dict)
+        else "unknown"
+    ),
+
+    "identity": result.get("identity"),
+    "brand": result.get("brand"),
+    "manufacturer": result.get("manufacturer"),
+
+    "attributes": attributes,
+
+    "evidence_count": len(evidence),
+
+    "error": None,
     })
+
